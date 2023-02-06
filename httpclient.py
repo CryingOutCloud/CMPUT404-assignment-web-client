@@ -22,7 +22,7 @@ import sys
 import socket
 import re
 # you may use urllib to encode data appropriately
-import urllib.parse
+from urllib.parse import urlparse
 
 def help():
     print("httpclient.py [GET/POST] [URL]\n")
@@ -41,13 +41,19 @@ class HTTPClient(object):
         return None
 
     def get_code(self, data):
-        return None
+        code = data.split(" ")[1]
+        return int(code)
 
     def get_headers(self,data):
-        return None
+        headers = data.split("\r\n\r\n")[0] + "\r\n\r\n"
+        return headers
 
     def get_body(self, data):
-        return None
+        parts = data.split("\r\n\r\n")
+        if len(parts) > 1:
+            return parts[1]
+        else:
+            return ""
     
     def sendall(self, data):
         self.socket.sendall(data.encode('utf-8'))
@@ -67,19 +73,35 @@ class HTTPClient(object):
                 done = not part
         return buffer.decode('utf-8')
 
+    # Construct the GET path from theurl componenets
+    def generate_path(self, url_parts):
+        path = url_parts.path
+        if not path:
+            path = "/"
+        if url_parts.query:
+            path += f"?{url_parts.query}"
+        return path
+
     def GET(self, url, args=None):
 
-        host, port = url.split("/")[2].split(":")
-        self.connect(host, port)
+        url_parts = urlparse(url)
+        path = self.generate_path(url_parts)
+        self.connect(url_parts.hostname, url_parts.port)
 
-        # https://www.internalpointers.com/post/making-http-requests-sockets-python
-        self.sendall(f"GET / HTTP/1.1\r\nHost:{url}\r\n\r\n")
+        self.sendall(
+            f"GET {path} HTTP/1.1\r\n" +
+            f"Host:{url_parts.hostname}\r\n\r\n"
+        )
+        
         data = self.socket.recv(4096)
 
-        print(data)
+        print("\ndata: ", data)
 
-        code = 500
-        body = ""
+        code = self.get_code(str(data))
+        body = self.get_body(str(data))
+
+        print("\ncode: ", code)
+        print("\nbody: ", body)
 
         self.close()
 
@@ -95,6 +117,7 @@ class HTTPClient(object):
             return self.POST( url, args )
         else:
             return self.GET( url, args )
+
     
 if __name__ == "__main__":
     client = HTTPClient()
