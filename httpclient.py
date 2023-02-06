@@ -68,8 +68,21 @@ class HTTPClient(object):
         return buffer.decode('utf-8')
 
     def GET(self, url, args=None):
+
+        host, port = url.split("/")[2].split(":")
+        self.connect(host, port)
+
+        # https://www.internalpointers.com/post/making-http-requests-sockets-python
+        self.sendall(f"GET / HTTP/1.1\r\nHost:{url}\r\n\r\n")
+        data = self.socket.recv(4096)
+
+        print(data)
+
         code = 500
         body = ""
+
+        self.close()
+
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
