@@ -98,11 +98,17 @@ class HTTPClient(object):
 
         url_parts = urlparse(url)
         path = self.generate_path(url_parts)
-        self.connect(url_parts.hostname, url_parts.port)
+
+        if url_parts.port:
+            self.connect(url_parts.hostname, int(url_parts.port))
+        else:
+            self.connect(url_parts.hostname, 80)
 
         self.sendall(
             f"GET {path} HTTP/1.1\r\n" +
-            f"Host:{url_parts.hostname}\r\n\r\n"
+            f"Host:{url_parts.hostname}\r\n" +
+            "Content-Type: application/x-www-form-urlencoded\r\n" +
+            "Connection: close\r\n\r\n"
         )
         
         data = self.socket.recv(4096)
