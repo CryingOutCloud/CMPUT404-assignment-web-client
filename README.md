@@ -23,4 +23,4 @@ compatible) http://docs.python.org/2/library/socketserver.html
 Collaborated with Steven Jiao 
 ccid: syjiao
 
-Suggested the use of COnnection: close
+Suggested the use of Connection: close
