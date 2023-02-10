@@ -50,6 +50,7 @@ class HTTPClient(object):
 
     def get_body(self, data):
         parts = data.split("\r\n\r\n")
+
         if len(parts) > 1:
             return parts[1]
         else:
@@ -82,6 +83,17 @@ class HTTPClient(object):
             path += f"?{url_parts.query}"
         return path
 
+    # Construct http-style set of POST parameters
+    def format_parms(self, args):
+
+        parm_strs = []
+        for key in args:
+            parm_strs.append(key + "=" + args[key])
+
+        parms = "&".join(parm_strs)
+
+        return parms
+
     def GET(self, url, args=None):
 
         url_parts = urlparse(url)
@@ -94,22 +106,42 @@ class HTTPClient(object):
         )
         
         data = self.socket.recv(4096)
-
-        print("\ndata: ", data)
-
-        code = self.get_code(str(data))
-        body = self.get_body(str(data))
-
-        print("\ncode: ", code)
-        print("\nbody: ", body)
+        code = self.get_code(data.decode("utf-8"))
+        body = self.get_body(data.decode("utf-8"))
 
         self.close()
 
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
-        code = 500
-        body = ""
+
+        url_parts = urlparse(url)
+        path = self.generate_path(url_parts)
+        self.connect(url_parts.hostname, url_parts.port)
+
+        if args:
+            parms = self.format_parms(args)
+        else:
+            parms = ''
+        parm_bytes = parms.encode('ascii')
+
+        self.sendall(
+            f"POST {path} HTTP/1.1\r\n" +
+            f"Host:{url_parts.hostname}\r\n" +
+            "Content-Type: application/x-www-form-urlencoded\r\n" +
+            f"Content-Length:{len(parm_bytes)}\r\n" +
+            "Connection: close\r\n" +
+            "\r\n" +
+            parms +
+            "\r\n\r\n"
+        )
+        
+        data = self.socket.recv(4096)
+        code = self.get_code(data.decode("utf-8"))
+        body = self.get_body(data.decode("utf-8"))
+
+        self.close()
+
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
