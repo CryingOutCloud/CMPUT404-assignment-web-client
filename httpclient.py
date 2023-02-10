@@ -99,6 +99,7 @@ class HTTPClient(object):
         url_parts = urlparse(url)
         path = self.generate_path(url_parts)
 
+        # https://www.quora.com/How-do-I-access-a-website-without-a-port-number
         if url_parts.port:
             self.connect(url_parts.hostname, int(url_parts.port))
         else:
@@ -131,6 +132,7 @@ class HTTPClient(object):
             parms = ''
         parm_bytes = parms.encode('ascii')
 
+        # https://stackoverflow.com/questions/28670835/python-socket-client-post-parameters
         self.sendall(
             f"POST {path} HTTP/1.1\r\n" +
             f"Host:{url_parts.hostname}\r\n" +
