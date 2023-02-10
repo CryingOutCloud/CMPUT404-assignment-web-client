@@ -108,7 +108,6 @@ class HTTPClient(object):
         self.sendall(
             f"GET {path} HTTP/1.1\r\n" +
             f"Host:{url_parts.hostname}\r\n" +
-            "Content-Type: application/x-www-form-urlencoded\r\n" +
             "Connection: close\r\n\r\n"
         )
         
