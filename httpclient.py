@@ -112,6 +112,9 @@ class HTTPClient(object):
         )
         
         data = self.socket.recv(4096)
+
+        print(data)
+
         code = self.get_code(data.decode("utf-8"))
         body = self.get_body(data.decode("utf-8"))
 
@@ -144,6 +147,9 @@ class HTTPClient(object):
         )
         
         data = self.socket.recv(4096)
+
+        print(data)
+
         code = self.get_code(data.decode("utf-8"))
         body = self.get_body(data.decode("utf-8"))
 
